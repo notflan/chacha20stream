@@ -128,6 +128,14 @@ where W: Write
 	    }
 	    unsafe {
 		explicit_bzero(self.buffer.as_mut_ptr() as *mut c_void, self.buffer.len());
+
+		#[cfg(nightly)] 
+		if cfg!(target_arch = "x86_64") || cfg!(target_arch = "x86"){
+		    asm!(
+			"clflush [{}]",
+			in(reg) self.buffer.as_mut_ptr()
+		    );
+		}
 	    }
 	    return;
 	}

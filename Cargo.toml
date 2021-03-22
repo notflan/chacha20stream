@@ -17,3 +17,6 @@ base64 = "0.13"
 getrandom = "0.2"
 openssl = "0.10"
 smallvec = {version = "1.6", features=["union"], optional = true}
+
+[build-dependencies]
+rustc_version = "0.2"

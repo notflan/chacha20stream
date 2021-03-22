@@ -1,3 +1,5 @@
+#![cfg_attr(nightly, feature(asm))] 
+
 #![allow(dead_code)]
 
 //extern crate test;
