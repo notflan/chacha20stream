@@ -1,0 +1,19 @@
+[package]
+name = "chacha20stream"
+version = "0.1.0"
+authors = ["Avril <flanchan@cumallover.me>"]
+edition = "2018"
+license = "MIT"
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[features]
+default = ["smallvec"]
+
+# Explicitly clear in-memory buffers with `explicit_bzero()` instead of normal `bzero()`.
+explicit_clear = []
+
+[dependencies]
+base64 = "0.13"
+getrandom = "0.2"
+openssl = "0.10"
+smallvec = {version = "1.6", features=["union"], optional = true}
