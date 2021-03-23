@@ -118,6 +118,7 @@ where W: Write
     /// Clear the internal buffer while keeping it allocated for further use.
     ///
     /// This does not affect operations at all, all it does is 0 out the left-over temporary buffer from the last operation(s).
+    #[cfg_attr(all(nightly, feature="explicit_clear"), inline(never))] // We don't want this asm! being inlined and preventing other optimisations on caller functions.
     pub fn prune(&mut self)
     {
 	#[cfg(feature="explicit_clear")]
