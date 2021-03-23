@@ -123,9 +123,19 @@ where W: Write
 	#[cfg(feature="explicit_clear")]
 	{
 	    use std::ffi::c_void;
+	    
+	    #[cfg(nightly)] 
+	    #[inline(never)] unsafe fn explicit_bzero(p: *mut c_void, s: usize)
+	    {
+		std::ptr::write_bytes(p, 0, s);
+
+		asm!("");
+	    }
+	    #[cfg(not(nightly))] 
 	    extern "C" {
 		fn explicit_bzero(_: *mut c_void, _:usize);
 	    }
+	    
 	    unsafe {
 		explicit_bzero(self.buffer.as_mut_ptr() as *mut c_void, self.buffer.len());
 
