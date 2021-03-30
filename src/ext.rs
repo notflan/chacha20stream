@@ -57,7 +57,7 @@ pub trait HexStringSliceIterExt
 }
 
 impl<S> HexStringSliceIterExt for S
-    where S: AsRef<[u8]>
+where S: AsRef<[u8]>
 {
     fn hex(&self) -> HexStringSliceIter<'_>
     {

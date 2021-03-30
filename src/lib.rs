@@ -9,6 +9,7 @@
 pub mod key;
 mod cha;
 mod stream;
+mod bytes;
 
 pub use stream::Sink;
 pub use key::{

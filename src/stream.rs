@@ -118,36 +118,12 @@ where W: Write
     /// Clear the internal buffer while keeping it allocated for further use.
     ///
     /// This does not affect operations at all, all it does is 0 out the left-over temporary buffer from the last operation(s).
-    #[cfg_attr(all(nightly, feature="explicit_clear"), inline(never))] // We don't want this asm! being inlined and preventing other optimisations on caller functions.
+    #[inline] 
     pub fn prune(&mut self)
     {
 	#[cfg(feature="explicit_clear")]
 	{
-	    use std::ffi::c_void;
-	    
-	    #[cfg(nightly)] 
-	    #[inline(never)] unsafe fn explicit_bzero(p: *mut c_void, s: usize)
-	    {
-		std::ptr::write_bytes(p, 0, s);
-
-		asm!("");
-	    }
-	    #[cfg(not(nightly))] 
-	    extern "C" {
-		fn explicit_bzero(_: *mut c_void, _:usize);
-	    }
-	    
-	    unsafe {
-		explicit_bzero(self.buffer.as_mut_ptr() as *mut c_void, self.buffer.len());
-
-		#[cfg(nightly)] 
-		if cfg!(target_arch = "x86_64") || cfg!(target_arch = "x86"){
-		    asm!(
-			"clflush [{}]",
-			in(reg) self.buffer.as_mut_ptr()
-		    );
-		}
-	    }
+	    bytes::explicit_prune(&mut self.buffer[..]);
 	    return;
 	}
 	#[cfg(not(feature="explicit_clear"))] 
