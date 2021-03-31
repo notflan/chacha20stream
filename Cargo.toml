@@ -7,8 +7,9 @@ license = "MIT"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-default = ["smallvec"]
+default = ["smallvec", "async"]
 
+async = ["tokio", "pin-project"]
 # Explicitly clear in-memory buffers with `explicit_bzero()` instead of normal `bzero()`.
 explicit_clear = []
 
@@ -16,7 +17,9 @@ explicit_clear = []
 base64 = "0.13"
 getrandom = "0.2"
 openssl = "0.10"
+pin-project = {version = "1.0.6", optional = true}
 smallvec = {version = "1.6", features=["union"], optional = true}
+tokio = {version = "0.2", optional = true}
 
 [build-dependencies]
 rustc_version = "0.2"

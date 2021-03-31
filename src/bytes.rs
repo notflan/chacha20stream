@@ -27,3 +27,11 @@ pub fn explicit_prune(buffer: &mut[u8]) {
 	explicit_bzero(buffer.as_mut_ptr() as *mut c_void, buffer.len());
     }
 }
+
+pub fn prune(buffer: &mut [u8])
+{
+    #[cfg(feature="explicit_clear")] explicit_prune(buffer);
+    #[cfg(not(feature="explicit_clear"))] unsafe {
+	std::ptr::write_bytes(buffer.as_mut_ptr(), 0, buffer.len());
+    }
+}
