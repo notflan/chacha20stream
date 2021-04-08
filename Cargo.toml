@@ -1,6 +1,10 @@
 [package]
 name = "chacha20stream"
-version = "0.1.0"
+version = "1.0.0"
+keywords = ["chacha20_poly1305", "stream", "wrapper", "encryption", "decryption"]
+description = "A writable wrapper stream for encryption and decryption with the stream cipher chacha20_poly1305"
+homepage = "https://git.flanchan.moe/flanchan/chacha20stream"
+repository = "https://github.com/notflan/chacha20stream"
 authors = ["Avril <flanchan@cumallover.me>"]
 edition = "2018"
 license = "MIT"
