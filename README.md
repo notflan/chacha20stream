@@ -1,7 +1,7 @@
 # chacha20_poly1305 stream wrapper
 Contains a writable stream that wraps another, applying the chacha20_poly1305 cipher to the input before writing for either encryption or decryption.
 
-## Usage
+## Usage example
 Encrypt and decrypt message with an in-memory buffer.
 ```rust
 // Generate random key and IV for the operations.
@@ -9,14 +9,14 @@ let (key, iv) = chacha20stream::keygen();
 
 let input = "Hello world!";
 
-// Encryption into a new `Vec<u8>`.
+// Encryption into a new `Vec<u8>`. (Any implementor of `io::Write` or `&mut io::Write` can be used.)
 let mut sink = Sink::encrypt(Vec::new(), key, iv).expect("Failed to create encryptor");
 sink.write_all(input.as_bytes()).unwrap();
 sink.flush().unwrap(); // `flush` also clears the in-memory buffer if there is left over data in it.
 
 let output_encrypted = sink.into_inner();
 
-// Decryption into a new `Vec<u8>`
+// Decryption into a new `Vec<u8>`. (Any implementor of `std::io::Write` or `&mut std::io::Write` can be used.)
 let mut sink = Sink::decrypt(Vec::new(), key, iv).expect("Failed to create decryptor");
 sink.write_all(&output_encrypted[..]).unwrap();
 sink.flush().unwrap();
