@@ -9,7 +9,9 @@ license = "MIT"
 [features]
 default = ["smallvec", "async"]
 
+# Enable async version with tokio v2.0 AsyncRead/AsyncWrite.
 async = ["tokio", "pin-project"]
+
 # Explicitly clear in-memory buffers with `explicit_bzero()` instead of normal `bzero()`.
 explicit_clear = []
 
@@ -23,3 +25,7 @@ tokio = {version = "0.2", optional = true}
 
 [build-dependencies]
 rustc_version = "0.2"
+
+[dev-dependencies]
+tempfile = "3.2.0"
+tokio = {version = "0.2", features=["full"]}
