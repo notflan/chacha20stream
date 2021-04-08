@@ -7,7 +7,9 @@ use openssl::{
 };
 use crate::key::{Key, IV};
 
+/// Size of the key used for the cipher
 pub const KEY_SIZE: usize = 32;
+/// Size of the IV used for the cipher
 pub const IV_SIZE: usize = 12;
 
 static NEW_CIPHER: fn() -> Cipher = Cipher::chacha20_poly1305;
@@ -31,7 +33,7 @@ static NEW_CIPHER: fn() -> Cipher = Cipher::chacha20_poly1305;
     )
 }
 
-/// Generate a random key and IV.
+/// Generate a random key and IV for the chacha20_poly1305 cipher
 #[inline(always)] pub fn keygen() -> (Key, IV)
 {
     (Key::new(), IV::new())

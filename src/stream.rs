@@ -10,6 +10,7 @@ use openssl::{
     error::ErrorStack,
 };
 
+/// Size of the in-structure buffer
 #[cfg(feature="smallvec")]
 pub const BUFFER_SIZE: usize = 32;
 
@@ -21,6 +22,34 @@ type BufferVec = Vec<u8>;
 pub type Error = ErrorStack;
 
 /// ChaCha Sink
+///
+/// # Encryption
+/// To create an encrypting wrapper stream:
+/// ```
+/// # use chacha20stream::Sink;
+/// # use std::io::Write;
+/// # let (key, iv) = chacha20stream::keygen();
+/// # let mut backing_stream = Vec::new();
+/// let mut stream = Sink::encrypt(&mut backing_stream, key, iv).expect("Failed to create encryptor");
+/// /* do work with `stream` */
+///
+/// // It is recommended to `flush` the stream to clear out any remaining data in the internal transformation buffer.
+/// stream.flush().unwrap();
+/// ```
+///
+/// # Decryption
+/// To create a decrypting wrapper stream:
+/// ```
+/// # use chacha20stream::Sink;
+/// # use std::io::Write;
+/// # let (key, iv) = chacha20stream::keygen();
+/// # let mut backing_stream = Vec::new();
+/// let mut stream = Sink::decrypt(&mut backing_stream, key, iv).expect("Failed to create decryptor");
+/// /* do work with `stream` */
+///
+/// // It is recommended to `flush` the stream to clear out any remaining data in the internal transformation buffer.
+/// stream.flush().unwrap();
+/// ```
 ///
 /// # Note
 /// When writing, a temporary buffer stored in the structure is used. This buffer is **not** cleared after a write, for efficiency reasons. This may leave sensitive information in the buffer after the write operation.

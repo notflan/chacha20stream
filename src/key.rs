@@ -1,3 +1,5 @@
+//! Key and IV structures for the cipher
+
 use getrandom::getrandom;
 use std::{fmt, str};
 pub use crate::cha::{
@@ -6,20 +8,48 @@ pub use crate::cha::{
 };
 use crate::ext::*;
 
+/// A 32 byte key for the chacha20_poly1305 cipher
+///
+/// # Generation
+/// You can generate a random key with `Key::new()`.
+/// To create a key structure from bytes, you can use `Key::from_bytes()` if the size of the buffer is exact, or you can write to an empty `Key` as it implements `Default`.
+/// ```
+/// # use chacha20stream::{Key, key::KEY_SIZE};
+/// # let key_bytes = [0u8; 32];
+/// let mut key = Key::default();
+/// key.as_mut().copy_from_slice(&key_bytes[..KEY_SIZE]);
+/// ```
+///
+/// You can also generate a random key/IV pair with `chacha20stream::keygen()`.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Copy, Default)]
 #[repr(transparent)]
 pub struct Key([u8; KEY_SIZE]);
 
+/// A 12 byte IV for the chacha20_poly1305 cipher
+///
+/// # Generation
+/// You can generate a random IV with `IV::new()`.
+/// To create an IV structure from bytes, you can use `IV::from_bytes()` if the size of the buffer is exact, or you can write to an empty `IV` as it implements `Default`.
+/// ```
+/// # use chacha20stream::{IV, key::IV_SIZE};
+/// # let iv_bytes = [0u8; 12];
+/// let mut iv = IV::default();
+/// iv.as_mut().copy_from_slice(&iv_bytes[..IV_SIZE]);
+/// ```
+///
+/// You can also generate a random key/IV pair with `chacha20stream::keygen()`.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Copy, Default)]
 #[repr(transparent)]
 pub struct IV([u8; IV_SIZE]);
 
 impl Key
 {
+    /// Construct a `Key` from an exact length (32 bytes) buffer.
     #[inline] pub fn from_bytes(k: [u8; KEY_SIZE]) -> Self
     {
 	Self(k)
     }
+    /// Create a new random 32 byte chacha20_poly1305 `Key`.
     pub fn new() -> Self
     {
 	let mut output = [0u8; KEY_SIZE];
@@ -31,10 +61,12 @@ impl Key
 impl IV
 {
     
+    /// Construct a `IV` from an exact length (12 bytes) buffer.
     #[inline] pub fn from_bytes(k: [u8; IV_SIZE]) -> Self
     {
 	Self(k)
     }
+    /// Create a new random 12 byte chacha20_poly1305 `IV`.
     pub fn new() -> Self
     {
 	let mut output = [0u8; IV_SIZE];
