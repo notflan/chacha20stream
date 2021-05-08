@@ -36,6 +36,7 @@ fn decrypt_message_to<W: Write + ?Sized>(output: &mut W, encrypted: &[u8], key: 
 * **smallvec** - Use `smallvec` crate to store the in-memory buffer on the stack if it's smalle enough (*default*)
 * **async** - Enable `AsyncSink` with tokio 0.2 `AsyncWrite`
 * **explicit_clear** - Explicitly clear in-memory buffer after operations.
+* **serde** - Enable `Key` and `IV` to be de/serialised with Serde.
 */
 
 #![cfg_attr(nightly, feature(asm))] 

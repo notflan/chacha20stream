@@ -40,6 +40,7 @@ use crate::ext::*;
 /// assert_eq!(key_encoded.parse::<Key>().unwrap(), key);
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Copy, Default)]
+#[cfg_attr(feature="serde", derive(serde::Serialize, serde::Deserialize))]
 #[repr(transparent)]
 pub struct Key([u8; KEY_SIZE]);
 
@@ -75,6 +76,7 @@ pub struct Key([u8; KEY_SIZE]);
 /// assert_eq!(iv_encoded.parse::<IV>().unwrap(), iv);
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Copy, Default)]
+#[cfg_attr(feature="serde", derive(serde::Serialize, serde::Deserialize))]
 #[repr(transparent)]
 pub struct IV([u8; IV_SIZE]);
 
