@@ -10,8 +10,17 @@ edition = "2018"
 license = "MIT"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[lib]
+crate-type = ["rlib", "cdylib", "staticlib"]
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "unwind"
+
 [features]
-default = ["smallvec"]
+default = ["smallvec", "ffi"]
 
 # Enable async version with tokio v2.0 AsyncRead/AsyncWrite.
 async = ["tokio", "pin-project"]
@@ -19,9 +28,13 @@ async = ["tokio", "pin-project"]
 # Explicitly clear in-memory buffers with `explicit_bzero()` instead of normal `bzero()`.
 explicit_clear = []
 
+# Add C interface bindings
+ffi = ["libc"]
+
 [dependencies]
 base64 = "0.13"
 getrandom = "0.2"
+libc = {version = "0.2.97", optional = true}
 openssl = "0.10"
 pin-project = {version = "1.0.6", optional = true}
 serde = {version = "1.0", features = ["derive"], optional = true}

@@ -64,3 +64,5 @@ pub use key::{
 };
 
 pub use cha::keygen;
+
+#[cfg(feature="ffi")] pub mod ffi;
