@@ -9,6 +9,8 @@ pub enum CErr
     InvalidFile,
     /// Unexpected null pointer
     NullPointer,
+    /// Internal SSL error
+    SslError,
 
     Panic = -1,
 }
@@ -42,9 +44,19 @@ impl From<CErr> for i32
     }
 }
 
+impl<T> From<CErr> for *mut T
+{
+    fn from(from: CErr) -> Self
+    {
+	if from.is_error() { ptr::null_mut() }
+	else { panic!("invalid conversion of successful operation to non-null output pointer") }
+    }
+}
+
+
 /// Null check a pointer. If it's not null, dereference it.
 #[macro_export] macro_rules! nullchk {
-    (<- $ptr:expr) => {
+    (move $ptr:expr) => {
 	{
 	    let ptr = $ptr;
 	    if ptr.is_null() {
@@ -56,12 +68,39 @@ impl From<CErr> for i32
 	    }
 	}
     };
+    (ref $ptr:expr) => {
+	{
+	    let ptr = $ptr;
+	    if ptr.is_null() {
+		return From::from(CErr::NullPointer);
+	    } else {
+		unsafe {
+		    & *ptr
+		}
+	    }
+	}
+    };
+    (ref mut $ptr:expr) => {
+	{
+	    let ptr = $ptr;
+	    if ptr.is_null() {
+		return From::from(CErr::NullPointer);
+	    } else {
+		unsafe {
+		    &mut *ptr
+		}
+	    }
+	}
+    };
+    
     ($ptr:expr) => {
 	{
-	    if $ptr.is_null() {
+	    let ptr = $ptr;
+	    if ptr.is_null() {
 		return From::from(CErr::NullPointer);
+	    } else {
+		ptr
 	    }
-	    ()
 	}
     }
 }
