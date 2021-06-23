@@ -18,7 +18,8 @@ static ssize_t cc20c_read(void* cookie, char* buffer, size_t size)
 
 static ssize_t cc20c_write(void* cookie, const char* buffer, size_t size)
 {
-	return cc20_write(buffer, 1, size, cookie);
+	register int c = cc20_write(buffer, 1, size, cookie);
+	return c < 0 ? 0 : c;
 }
 
 static int cc20c_seek(void* cookie, off64_t* pos, int w)
@@ -32,10 +33,10 @@ static int cc20c_seek(void* cookie, off64_t* pos, int w)
 
 static int cc20c_close(void* cookie)
 {
-	struct cc20_metadata meta;
+	struct cc20_metadata meta ={0};
 	cc20_close_sink(cookie, &meta);
 	if(meta.backing) fclose(meta.backing);
-	else return 1;
+	else return -1;
 	return 0;
 }
 
