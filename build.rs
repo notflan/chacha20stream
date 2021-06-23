@@ -12,7 +12,7 @@ fn build_cookie_wrapper(floc: impl AsRef<Path>)
 {
     let mut builder = cc::Build::new();
     // --std=c99 -W -Wall -Werror -pedantic -O3 -flto
-    builder.flag("--std=c11")
+    builder.flag("--std=c99")
 	.flag("-W")
 	.flag("-Wall")
 	.flag_if_supported("-Wextra")
