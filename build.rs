@@ -8,6 +8,7 @@ use rustc_version::{version, version_meta, Channel};
 
 const FFI_SRC_DIR: &str = "src/ffi";
 
+//TODO: Replace the wrapper C file with a pure Rust impl in `ffi::cookie::`
 fn build_cookie_wrapper(floc: impl AsRef<Path>)
 {
     let mut builder = cc::Build::new();
@@ -21,14 +22,14 @@ fn build_cookie_wrapper(floc: impl AsRef<Path>)
 	.flag("-fno-strict-aliasing")
         .include("include/")
 	.opt_level(3)
-	.flag_if_supported("-flto")
+	// .flag_if_supported("-flto") //XXX: For some reason, this makes static linking the library fail.
 
  	// Not sure if we want these two. We can check the codegen later.
 	//.pic(false)
 	//.use_plt(false)
 	
 	.file(Path::new(FFI_SRC_DIR).join(floc))
-	.compile("cwrapper");
+	.compile("wrapper");
 }
 
 fn main() {
