@@ -42,6 +42,7 @@ smallvec = {version = "1.6", features=["union"], optional = true}
 tokio = {version = "0.2", optional = true}
 
 [build-dependencies]
+cc = "1.0.68"
 rustc_version = "0.2"
 
 [dev-dependencies]

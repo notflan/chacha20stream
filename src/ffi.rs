@@ -53,6 +53,7 @@ pub enum CMode
 }
 
 mod interop;
+mod cookie;
 
 mod error;
 pub use error::*;
@@ -127,8 +128,18 @@ pub use error::*;
     };
     cc20_gen_sink(&meta as *const _)
 }
+
+#[no_mangle] pub unsafe extern "C" fn cc20_gen(meta: *const CPassthrough) -> *mut libc::FILE
+{
+    let sink = cc20_gen_sink(meta);
+    if sink.is_null() {
+	return ptr::null_mut();
+    }
+    cc20_wrap_sink(sink)
+}
+
 /// Create a wrapper `FILE*` that acts as a `Sink` when written to.
-#[no_mangle] pub unsafe extern "C" fn cc20_wrap(file: *mut libc::FILE, key: *const Key, iv: *const IV, mode: CMode) -> *mut libc::FILE
+#[no_mangle] pub unsafe extern "C" fn cc20_wrap_full(file: *mut libc::FILE, key: *const Key, iv: *const IV, mode: CMode) -> *mut libc::FILE
 {
     // No need to `no_unwind` this, nothing here can panic.
     let csink = cc20_gen_sink_full(file, key, iv, mode);
@@ -153,7 +164,8 @@ pub use error::*;
 /// Convert a `Sink` into a `FILE*`.
 #[no_mangle] pub unsafe extern "C" fn cc20_wrap_sink(sink: *mut CSink) -> *mut libc::FILE
 {
-    todo!("Create a Custom Stream in `wrapper.c` that allows creating a FILE* object from `sink`.")
+    //todo!("Create a Custom Stream in `wrapper.c` that allows creating a FILE* object from `sink`.")
+    cookie::create(sink)
 }
 
 impl Write for CPassthrough
