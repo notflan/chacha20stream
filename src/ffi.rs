@@ -8,6 +8,12 @@ use std::io::{
     self, Write,
 };
 
+use key::{
+    Key,
+    IV,
+};
+
+/*
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Copy, PartialOrd, Ord, Default)]
 #[repr(C)]
 pub struct CKey([u8; key::KEY_SIZE]);
@@ -15,6 +21,7 @@ pub struct CKey([u8; key::KEY_SIZE]);
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Copy, PartialOrd, Ord, Default)]
 #[repr(C)]
 pub struct CIv([u8; key::IV_SIZE]);
+ */
 
 /// Non-encrypted wrapper
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -49,7 +56,7 @@ mod interop;
 mod error;
 pub use error::*;
 
-#[no_mangle] pub unsafe extern "C" fn cc20_gen_meta(file: *mut libc::FILE, key: *const CKey, iv: *const CIv, mode: CMode, output: *mut CPassthrough) -> i32
+#[no_mangle] pub unsafe extern "C" fn cc20_gen_meta(file: *mut libc::FILE, key: *const Key, iv: *const IV, mode: CMode, output: *mut CPassthrough) -> i32
 {
     no_unwind!({
 	if file.is_null() {
@@ -59,8 +66,8 @@ pub use error::*;
 	let iv = nullchk!(move iv);
 	let write = CPassthrough {
 	    backing: file,
-	    key: key::Key::from_bytes(key.0),
-	    iv: key::IV::from_bytes(iv.0),
+	    key,
+	    iv,
 	    mode,
 	};
 	nullchk!(output);
@@ -86,7 +93,7 @@ pub use error::*;
     }).unwrap_or(ptr::null_mut())
 }
 /// Create an encrypting `Sink` over a `FILE*` with these options.
-#[no_mangle] pub unsafe extern "C" fn cc20_gen_sink_full(file: *mut libc::FILE, key: *const CKey, iv: *const CIv, mode: CMode) -> *mut CSink
+#[no_mangle] pub unsafe extern "C" fn cc20_gen_sink_full(file: *mut libc::FILE, key: *const Key, iv: *const IV, mode: CMode) -> *mut CSink
 {
     let meta = {
 	// No need to `no_unwind` this, `cc20_gen_meta` already does it, and nothing else here can panic.
@@ -99,7 +106,7 @@ pub use error::*;
     cc20_gen_sink(&meta as *const _)
 }
 /// Create a wrapper `FILE*` that acts as a `Sink` when written to.
-#[no_mangle] pub unsafe extern "C" fn cc20_wrap(file: *mut libc::FILE, key: *const CKey, iv: *const CIv, mode: CMode) -> *mut libc::FILE
+#[no_mangle] pub unsafe extern "C" fn cc20_wrap(file: *mut libc::FILE, key: *const Key, iv: *const IV, mode: CMode) -> *mut libc::FILE
 {
     // No need to `no_unwind` this, nothing here can panic.
     let csink = cc20_gen_sink_full(file, key, iv, mode);
