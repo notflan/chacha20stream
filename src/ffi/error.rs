@@ -1,6 +1,7 @@
 //! FFI errors
 use super::*;
 
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Copy)]
 #[repr(C)]
 pub enum CErr
@@ -11,6 +12,8 @@ pub enum CErr
     NullPointer,
     /// Internal SSL error
     SslError,
+    /// I/O error
+    IO,
 
     Panic = -1,
 }

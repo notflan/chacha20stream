@@ -41,4 +41,6 @@ int cc20_close_sink(cc20_sink_t* sink,
 
 FILE* cc20_wrap_sink(cc20_sink_t* sink);
 
+size_t cc20_write(const void* ptr, size_t size, size_t nmemb, cc20_sink_t* restrict sink);
+
 #endif /* _CC20_H */

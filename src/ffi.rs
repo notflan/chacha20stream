@@ -4,6 +4,7 @@
 //! Intended to be linked to the C wrapper object `wrapper.c`.
 use super::*;
 use std::ptr;
+use std::ffi::c_void;
 use std::io::{
     self, Write,
 };
@@ -55,6 +56,27 @@ mod interop;
 
 mod error;
 pub use error::*;
+
+#[no_mangle] pub unsafe extern "C" fn cc20_write(ptr: *const c_void, size: usize, nmemb: usize, sink: *mut CSink) -> usize
+{
+    let mut output: usize = 0;
+    let _er = no_unwind!(ref {
+	let sink = nullchk!(ref mut sink);
+	let bytes = size * nmemb;
+	let slice = if ptr.is_null() {
+	    return CErr::NullPointer;
+	} else {
+	    std::slice::from_raw_parts(ptr as *const u8, bytes)
+	};
+	match sink.sink.write(&slice[..]) {
+	    Err(_) => return CErr::IO,
+	    Ok(v) => output = v,
+	}
+	CErr::Success
+    }).unwrap_or(CErr::Panic);
+    //TODO: Write `er` into an error flag for `sink` (parallel to `ferror`/`feof`).
+    output
+}
 
 #[no_mangle] pub unsafe extern "C" fn cc20_gen_meta(file: *mut libc::FILE, key: *const Key, iv: *const IV, mode: CMode, output: *mut CPassthrough) -> i32
 {

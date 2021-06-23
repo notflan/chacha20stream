@@ -1,7 +1,10 @@
 
 #[macro_export] macro_rules! no_unwind {
     ($expr:expr) => {
-	::std::panic::catch_unwind(move || $expr).ok()
+	::std::panic::catch_unwind(::std::panic::AssertUnwindSafe(move || $expr)).ok()
+    };
+    (ref $expr:expr) => {
+	::std::panic::catch_unwind(::std::panic::AssertUnwindSafe(|| $expr)).ok()
     };
 }
 
