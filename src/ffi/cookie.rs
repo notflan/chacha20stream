@@ -1,6 +1,8 @@
 use super::*;
 use libc::{c_void, FILE};
 
+//TODO: Remove `wrapper.c`, implement it in Rust here
+
 //FILE* _cc20c_create(cc20_sink_t* restrict sink)
 extern "C" {
     fn _cc20c_create(sink: *mut c_void) -> *mut FILE;
