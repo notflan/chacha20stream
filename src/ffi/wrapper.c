@@ -18,8 +18,9 @@ static ssize_t cc20c_read(void* cookie, char* buffer, size_t size)
 
 static ssize_t cc20c_write(void* cookie, const char* buffer, size_t size)
 {
-	register int c = cc20_write(buffer, 1, size, cookie);
-	return c < 0 ? 0 : c;
+	cc20_result_t res = cc20_write(buffer, &size, cookie);
+	IGNORE(res); // TODO: set an error flag `res` in `cookie` (i.e. `CSink`)
+	return (ssize_t) size;
 }
 
 static int cc20c_seek(void* cookie, off64_t* pos, int w)

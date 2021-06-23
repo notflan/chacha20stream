@@ -2,6 +2,15 @@
 use super::*;
 
 
+#[macro_export] macro_rules! errchk {
+    ($expr:expr) => {
+	match CErr::from($expr) {
+	    CErr::Success => (),
+	    x => return x,
+	}
+    };
+}
+
 //TODO: Rework the error handling/reporting here. 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Copy)]
 #[repr(C)]

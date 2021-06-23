@@ -24,8 +24,8 @@ fn build_cookie_wrapper(floc: impl AsRef<Path>)
 	.flag_if_supported("-flto")
 
  	// Not sure if we want these two. We can check the codegen later.
-	.pic(false)
-	.use_plt(false)
+	//.pic(false)
+	//.use_plt(false)
 	
 	.file(Path::new(FFI_SRC_DIR).join(floc))
 	.compile("cwrapper");
@@ -52,4 +52,6 @@ fn main() {
     }
 
     build_cookie_wrapper("wrapper.c");
+
+//println!("cargo:rustc-link-lib={}", link);
 }

@@ -36,6 +36,9 @@ typedef struct cc20_metadata {
 
 typedef struct cc20_sink cc20_sink_t;
 
+// Functions //
+#define _cc20_OUT *restrict
+
 cc20_result_t cc20_keygen(cc20_key_t* restrict key,
 		cc20_iv_t* restrict iv);
 
@@ -43,27 +46,31 @@ cc20_result_t cc20_gen_meta(FILE* file,
 		const cc20_key_t* key,
 		const cc20_iv_t* iv,
 		enum cc20_mode mode,
-		struct cc20_metadata* restrict output);
+		struct cc20_metadata _cc20_OUT output);
 
-cc20_sink_t* cc20_gen_sink(const struct cc20_metadata* meta);
+cc20_result_t cc20_gen_sink(const struct cc20_metadata* meta, cc20_sink_t* _cc20_OUT output);
 
-cc20_sink_t* cc20_gen_sink_full(FILE* file, 
+
+cc20_result_t cc20_gen_sink_full(FILE* file, 
 		const cc20_key_t* key,
 		const cc20_iv_t* iv,
-		enum cc20_mode mode);
+		enum cc20_mode mode,
+		cc20_sink_t* _cc20_OUT output);
 
-FILE* cc20_wrap_full(FILE* file, 
+cc20_result_t cc20_wrap_full(FILE* file, 
 		const cc20_key_t* key,
 		const cc20_iv_t* iv,
-		enum cc20_mode mode);
+		enum cc20_mode mode,
+		FILE* _cc20_OUT output);
 
-FILE* cc20_gen(const struct cc20_metadata* meta);
+cc20_result_t cc20_gen(const struct cc20_metadata* meta,
+		FILE* _cc20_OUT output);
 
 cc20_result_t cc20_close_sink(cc20_sink_t* sink,
 		struct cc20_metadata* restrict meta);
 
 FILE* cc20_wrap_sink(cc20_sink_t* sink);
 
-size_t cc20_write(const void* ptr, size_t size, size_t nmemb, cc20_sink_t* restrict sink);
+cc20_result_t cc20_write(const void* ptr, size_t * restrict bytes, cc20_sink_t* restrict sink);
 
 #endif /* _CC20_H */

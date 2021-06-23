@@ -61,25 +61,24 @@ pub use error::*;
     }).unwrap_or(CErr::Panic)
 }
 
-#[no_mangle] pub unsafe extern "C" fn cc20_write(ptr: *const c_void, size: usize, nmemb: usize, sink: *mut CSink) -> usize
+#[no_mangle] pub unsafe extern "C" fn cc20_write(ptr: *const c_void, bytes: *mut usize, sink: *mut CSink) -> CErr
 {
-    let mut output: usize = 0;
-    let _er = no_unwind!(ref {
+    no_unwind!({
 	let sink = nullchk!(ref mut sink);
-	let bytes = size * nmemb;
+	let nbytes = nullchk!(move bytes);
+	
 	let slice = if ptr.is_null() {
 	    return CErr::NullPointer;
 	} else {
-	    std::slice::from_raw_parts(ptr as *const u8, bytes)
+	    std::slice::from_raw_parts(ptr as *const u8, nbytes)
 	};
 	match sink.sink.write(&slice[..]) {
 	    Err(_) => return CErr::IO,
-	    Ok(v) => output = v,
+	    Ok(v) => *bytes = v,
 	}
 	CErr::Success
-    }).unwrap_or(CErr::Panic);
-    //TODO: Write `er` into an error flag for `sink` (parallel to `ferror`/`feof`).
-    output
+    })
+	.unwrap_or(CErr::Panic)
 }
 
 #[no_mangle] pub unsafe extern "C" fn cc20_gen_meta(file: *mut libc::FILE, key: *const Key, iv: *const IV, mode: CMode, output: *mut CPassthrough) -> CErr
@@ -111,10 +110,11 @@ pub use error::*;
 }
 
 /// Create an encrypting `Sink` over a `FILE*` from this metadata struct.
-#[no_mangle] pub unsafe extern "C"  fn cc20_gen_sink(meta: *const CPassthrough) -> *mut CSink
+#[no_mangle] pub unsafe extern "C"  fn cc20_gen_sink(meta: *const CPassthrough, output: *mut *mut CSink) -> CErr
 {
     no_unwind!({
 	let meta = nullchk!(ref meta);
+	let output = nullchk!(ref mut output);
 	
 	let sink = CSink {
 	    sink: match meta.mode {
@@ -122,42 +122,41 @@ pub use error::*;
 		CMode::Decrypt => Sink::decrypt(meta.clone(), meta.key, meta.iv).map_err(|_| CErr::SslError).unwrap(),
 	    },
 	};
-	
-	interop::give(sink)
-    }).unwrap_or(ptr::null_mut())
+	*output = interop::give(sink);
+	CErr::Success
+    }).unwrap_or(CErr::Panic)
 }
+
 /// Create an encrypting `Sink` over a `FILE*` with these options.
-#[no_mangle] pub unsafe extern "C" fn cc20_gen_sink_full(file: *mut libc::FILE, key: *const Key, iv: *const IV, mode: CMode) -> *mut CSink
+#[no_mangle] pub unsafe extern "C" fn cc20_gen_sink_full(file: *mut libc::FILE, key: *const Key, iv: *const IV, mode: CMode, output: *mut *mut CSink) -> CErr
 {
     let meta = {
 	// No need to `no_unwind` this, `cc20_gen_meta` already does it, and nothing else here can panic.
 	let mut meta: std::mem::MaybeUninit<CPassthrough> = std::mem::MaybeUninit::uninit();
-	match cc20_gen_meta(file, key, iv, mode, &mut meta as *mut _ as  *mut CPassthrough).into() {
-	    0i32 => meta.assume_init(),
-	    _ => return ptr::null_mut(),
+	match cc20_gen_meta(file, key, iv, mode, &mut meta as *mut _ as  *mut CPassthrough) {
+	    CErr::Success => meta.assume_init(),
+	    x => return x,
 	}
     };
-    cc20_gen_sink(&meta as *const _)
+    cc20_gen_sink(&meta as *const _, output)
 }
 
-#[no_mangle] pub unsafe extern "C" fn cc20_gen(meta: *const CPassthrough) -> *mut libc::FILE
+#[no_mangle] pub unsafe extern "C" fn cc20_gen(meta: *const CPassthrough, output: *mut *mut libc::FILE) -> CErr
 {
-    let sink = cc20_gen_sink(meta);
-    if sink.is_null() {
-	return ptr::null_mut();
-    }
-    cc20_wrap_sink(sink)
+    let mut sink: *mut CSink = ptr::null_mut();
+    errchk!(cc20_gen_sink(meta, &mut sink as *mut *mut CSink));
+    *output = cc20_wrap_sink(sink);
+    CErr::Success
 }
 
 /// Create a wrapper `FILE*` that acts as a `Sink` when written to.
-#[no_mangle] pub unsafe extern "C" fn cc20_wrap_full(file: *mut libc::FILE, key: *const Key, iv: *const IV, mode: CMode) -> *mut libc::FILE
+#[no_mangle] pub unsafe extern "C" fn cc20_wrap_full(file: *mut libc::FILE, key: *const Key, iv: *const IV, mode: CMode, output: &mut *mut libc::FILE) -> CErr
 {
     // No need to `no_unwind` this, nothing here can panic.
-    let csink = cc20_gen_sink_full(file, key, iv, mode);
-    if csink.is_null() {
-	return ptr::null_mut();
-    }
-    cc20_wrap_sink(csink)
+    let mut csink: *mut CSink = ptr::null_mut();
+    errchk!(cc20_gen_sink_full(file, key, iv, mode, &mut csink as *mut *mut CSink));
+    *output = cc20_wrap_sink(csink);
+    CErr::Success
 }
 /// Closes and frees the wrapper `sink`, and writes inner metadata struct to `meta`, if `file` is non-null.
 #[no_mangle] pub unsafe extern "C" fn cc20_close_sink(sink: *mut CSink, meta: *mut CPassthrough) -> CErr
@@ -174,7 +173,9 @@ pub use error::*;
 /// Convert a `Sink` into a `FILE*`.
 #[no_mangle] pub unsafe extern "C" fn cc20_wrap_sink(sink: *mut CSink) -> *mut libc::FILE
 {
-    //todo!("Create a Custom Stream in `wrapper.c` that allows creating a FILE* object from `sink`.")
+    if sink.is_null() {
+	return ptr::null_mut();
+    }
     cookie::create(sink)
 }
 
