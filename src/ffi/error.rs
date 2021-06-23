@@ -2,6 +2,7 @@
 use super::*;
 
 
+//TODO: Rework the error handling/reporting here. 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Copy)]
 #[repr(C)]
 pub enum CErr

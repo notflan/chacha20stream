@@ -14,16 +14,6 @@ use key::{
     IV,
 };
 
-/*
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Copy, PartialOrd, Ord, Default)]
-#[repr(C)]
-pub struct CKey([u8; key::KEY_SIZE]);
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Copy, PartialOrd, Ord, Default)]
-#[repr(C)]
-pub struct CIv([u8; key::IV_SIZE]);
- */
-
 /// Non-encrypted wrapper
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[repr(C)]
@@ -36,7 +26,6 @@ pub struct CPassthrough
 }
 
 /// A sink wrapper of `CPassthrough`.
-//TODO: Create a Custom Stream in `wrapper.c` that allows creating a FILE* object with `fopencookie()` from this.
 #[derive(Debug)]
 #[repr(C)]
 pub struct CSink
