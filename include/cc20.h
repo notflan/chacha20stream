@@ -34,6 +34,11 @@ typedef struct cc20_metadata {
 	enum cc20_mode mode;
 } cc20_meta_t;
 
+struct cc20_wrap_cfg {
+	// default: false (0)
+	int keep_alive;
+};
+
 typedef struct cc20_sink cc20_sink_t;
 
 // Functions //
@@ -48,7 +53,8 @@ cc20_result_t cc20_gen_meta(FILE* file,
 		enum cc20_mode mode,
 		struct cc20_metadata _cc20_OUT output);
 
-cc20_result_t cc20_gen_sink(const struct cc20_metadata* meta, cc20_sink_t* _cc20_OUT output);
+cc20_result_t cc20_gen_sink(const struct cc20_metadata* meta,
+			cc20_sink_t* _cc20_OUT output);
 
 
 cc20_result_t cc20_gen_sink_full(FILE* file, 
@@ -69,8 +75,8 @@ cc20_result_t cc20_gen(const struct cc20_metadata* meta,
 cc20_result_t cc20_close_sink(cc20_sink_t* sink,
 		struct cc20_metadata* restrict meta);
 
-FILE* cc20_wrap_sink(cc20_sink_t* sink);
-
 cc20_result_t cc20_write(const void* ptr, size_t * restrict bytes, cc20_sink_t* restrict sink);
+
+FILE* cc20_wrap_sink(cc20_sink_t* sink, const struct cc20_wrap_cfg* cfg);
 
 #endif /* _CC20_H */

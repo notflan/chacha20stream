@@ -32,6 +32,7 @@ pub struct CSink
 {
     sink: Sink<CPassthrough>,
 
+    cookie_settings: cookie::Config,
     //last_err: () //TODO: how to implement this?
 }
 
@@ -123,6 +124,7 @@ pub use error::*;
 		CMode::Encrypt => Sink::encrypt(meta.clone(), meta.key, meta.iv).map_err(|_| CErr::SslError).unwrap(),
 		CMode::Decrypt => Sink::decrypt(meta.clone(), meta.key, meta.iv).map_err(|_| CErr::SslError).unwrap(),
 	    },
+	    cookie_settings: Default::default(),
 	};
 	*output = interop::give(sink);
 	CErr::Success
@@ -147,7 +149,7 @@ pub use error::*;
 {
     let mut sink: *mut CSink = ptr::null_mut();
     errchk!(cc20_gen_sink(meta, &mut sink as *mut *mut CSink));
-    *output = cc20_wrap_sink(sink);
+    *output = cc20_wrap_sink(sink, ptr::null());
     CErr::Success
 }
 
@@ -157,7 +159,7 @@ pub use error::*;
     // No need to `no_unwind` this, nothing here can panic.
     let mut csink: *mut CSink = ptr::null_mut();
     errchk!(cc20_gen_sink_full(file, key, iv, mode, &mut csink as *mut *mut CSink));
-    *output = cc20_wrap_sink(csink);
+    *output = cc20_wrap_sink(csink, ptr::null());
     CErr::Success
 }
 /// Closes and frees the wrapper `sink`, and writes inner metadata struct to `meta`, if `file` is non-null.
@@ -172,11 +174,15 @@ pub use error::*;
     }).unwrap_or(CErr::Panic)
 }
 
-/// Convert a `Sink` into a `FILE*`.
-#[no_mangle] pub unsafe extern "C" fn cc20_wrap_sink(sink: *mut CSink) -> *mut libc::FILE
+/// Convert a `Sink` into a `FILE*` with specific config (if not `NULL`).
+#[no_mangle] pub unsafe extern "C" fn cc20_wrap_sink(sink: *mut CSink, config: *const cookie::Config) -> *mut libc::FILE
 {
     if sink.is_null() {
 	return ptr::null_mut();
+    }
+    if !config.is_null() {
+	let sink = &mut *sink;
+	sink.cookie_settings = *config;
     }
     cookie::create(sink)
 }

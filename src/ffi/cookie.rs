@@ -15,7 +15,25 @@ use libc::{
     FILE,
 };
 
-//TODO: Remove `wrapper.c`, implement it in Rust here
+/// Configuration for the `FILE*` wrapper
+#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Copy)]
+#[repr(C)]
+pub struct Config
+{
+    pub keep_alive: c_int,
+}
+
+impl Default for Config
+{
+    #[inline]
+    fn default() -> Self
+    {
+	Self {
+	    keep_alive: 0,
+	}
+    }
+}
+
 
 type cookie_read_function_t = Option<extern "C" fn (cookie: *mut c_void, buf: *mut c_char , size: size_t) -> ssize_t>;
 type cookie_write_function_t = Option<extern "C" fn (cookie: *mut c_void, buf: *const c_char, size: size_t) -> ssize_t>;
@@ -98,9 +116,13 @@ extern "C" fn close(cookie: *mut c_void) -> c_int
     } else {
 	cookie as *mut CSink
     };
-    let sink = unsafe { interop::take(sink) };
-    drop(sink);
-    0
+    let CSink { sink, cookie_settings } = unsafe { interop::take(sink) };
+    let mut meta = sink.into_inner();
+    if cookie_settings.keep_alive == 0 && !meta.backing.is_null() {
+	unsafe {  (libc::fclose(meta.backing), meta.backing = ptr::null_mut()).0 }
+    } else {
+	0
+    }
 }
 
 #[inline(always)] pub unsafe fn create(raw_sink: *mut CSink) -> *mut FILE
