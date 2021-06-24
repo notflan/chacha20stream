@@ -31,6 +31,8 @@ pub struct CPassthrough
 pub struct CSink
 {
     sink: Sink<CPassthrough>,
+
+    //last_err: () //TODO: how to implement this?
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Copy)]
