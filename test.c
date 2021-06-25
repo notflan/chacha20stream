@@ -44,11 +44,14 @@ FILE* wrap_file(const char* filename, enum cc20_mode mode, cc20_meta_t* restrict
 int main(int argc, char** argv)
 {
 	((void)argc);
-	if(!argv[1]) return 1;	
+	((void)argv);
+	//if(!argv[1]) return 1;	
 
 	cc20_meta_t meta;
+	unsigned char* mems = NULL;
+	size_t mems_sz =0;
 
-	FILE* output = wrap_file(argv[1], CC20_ENCRYPT, &meta);
+	FILE* output = wrap_stream(open_memstream((char**)&mems, &mems_sz), CC20_ENCRYPT, NULL, NULL, &meta);//wrap_file(argv[1], CC20_ENCRYPT, &meta);
 	size_t wsz;
 	printf("written %lu bytes\n", (wsz=fwrite(write_string, 1, strlen(write_string), output)));
 
@@ -76,6 +79,8 @@ int main(int argc, char** argv)
 	printf("written %lu bytes\n", wsz);
 
 	fclose(input);
+	printf("\nbacking buffer contains: %lu bytes\n", mems_sz);
+	if(mems) free(mems);
 
 	return 0;
 }
