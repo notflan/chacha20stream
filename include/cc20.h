@@ -9,8 +9,19 @@ extern "C" {
 #include <stdint.h>
 #include <stddef.h>
 
-#define KEY_SIZE 32
-#define IV_SIZE 12
+/// CC20 C interface versioning macro.
+/// Most significant 8 bits is major, then next 8 is minor, then bugfix, then revision.
+/// The componants should never exceed 255, or that is undefined behaviour. They should also be unsigned int (uint32_t), or that is undefined behaviour. 
+/// This macro is not intended to be used.
+#define _CC20_VERSION(ma,mi,bu,r) (((ma) << 24) | ((mi) << 16) | ((bu) << 8) | (r))
+
+/// C interface API version
+#define CC20_C_API_VERSION 0
+/// The last library version as unsigned int. 
+#define CC20_MIN_LIBRARY_VERSION _CC20_VERSION(1u, 2u, 0, 0)
+
+#define CC20_KEY_SIZE 32
+#define CC20_IV_SIZE 12
 
 enum cc20_mode {
 	/// Encrypt the data written to this stream
@@ -40,9 +51,9 @@ typedef enum cc20_error {
 #define CC20_ERR(v) ((v)!=CC20_ERR_NONE)
 
 /// A chacha20_poly1305 key
-typedef uint8_t cc20_key_t[KEY_SIZE];
+typedef uint8_t cc20_key_t[CC20_KEY_SIZE];
 /// A chacha20_poly1305 IV
-typedef uint8_t cc20_iv_t[IV_SIZE];
+typedef uint8_t cc20_iv_t[CC20_IV_SIZE];
 
 /// Metadata used to construct an instance of `cc20_sink_t`.
 typedef struct cc20_metadata {

@@ -1,6 +1,6 @@
 [package]
 name = "chacha20stream"
-version = "1.0.3"
+version = "1.2.0"
 keywords = ["chacha20_poly1305", "stream", "wrapper", "encryption", "decryption"]
 description = "A writable wrapper stream for encryption and decryption with the stream cipher chacha20_poly1305"
 homepage = "https://git.flanchan.moe/flanchan/chacha20stream"
@@ -28,7 +28,7 @@ async = ["tokio", "pin-project"]
 # Explicitly clear in-memory buffers with `explicit_bzero()` instead of normal `bzero()`.
 explicit_clear = []
 
-# Add C interface bindings
+# Build with C interface bindings
 ffi = ["libc"]
 
 [dependencies]
