@@ -30,6 +30,7 @@ assert_eq!(&output_decrypted[..], input.as_bytes());
 * **smallvec** - Use `smallvec` crate to store the in-memory buffer on the stack if it's smalle enough (*default*)
 * **async** - Enable `AsyncSink` with Tokio *0.2* `AsyncWrite`. The API is the same as for the regular `Sink`.
 * **explicit_clear** - Explicitly clear in-memory buffer after operations.
+* **ffi** - Build with the C FFI interface (see `include/cc20.h`.) The output libraries are generated in `target/{debug,release}/libchacha20stream.{a,so}`.
 
 # License
 MIT
