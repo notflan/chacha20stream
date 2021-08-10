@@ -56,56 +56,36 @@ pub type Error = ErrorStack;
 /// The `flush()` implementation *does* clear this buffer.
 /// You can use the `prune()` function to zero out this buffer manually too.
 //#[derive(Debug)]
-pub struct Sink<W>
+pub struct Sink<W: ?Sized>
 {
-    stream: W,
     crypter: Crypter, // for chacha, finalize does nothing it seems. we can also call it multiple times.
-
     buffer: BufferVec, // used to buffer the operation
+
+    stream: W,
 }
 
-impl<W: fmt::Debug> fmt::Debug for Sink<W>
+/// TODO: Document
+//#[derive(Debug)]
+pub struct Source<R>
+{
+    crypter: Crypter, 
+    #[cfg(not(feature="reuse-buffer"))] buffer: BufferVec, // When `reuse-buffer` is enabled, this isn't needed. We re-use the output buffer for the initial read of untransformed data from `stream` and the actual transformation of the read bytes.
+    
+    stream: R
+}
+
+impl<W: ?Sized+ fmt::Debug> fmt::Debug for Sink<W>
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result
     {
-	write!(f, "Sink({:?}, ({} buffer cap))", self.stream, self.buffer.capacity())
+	write!(f, "Sink({:?}, ({} buffer cap))", &self.stream, self.buffer.capacity())
     }
 }
 
-impl<W> Sink<W>
+impl<W: ?Sized> Sink<W>
 where W: Write
 {
-    /// Create a new Chacha Sink stream wrapper
-    #[inline] fn new(stream: W, crypter: Crypter) -> Self
-    {
-	Self{stream, crypter, buffer: BufferVec::new()}
-    }
 
-    /// Create an encrypting Chacha Sink stream wrapper
-    pub fn encrypt(stream: W, key: Key, iv: IV) -> Result<Self, Error>
-    {
-	Ok(Self::new(stream, cha::encrypter(key, iv)?))
-    }
-    
-    /// Create a decrypting Chacha Sink stream wrapper
-    pub fn decrypt(stream: W, key: Key, iv: IV) -> Result<Self, Error>
-    {
-	Ok(Self::new(stream, cha::decrypter(key, iv)?))
-    }
-    
-
-    /// Consume into the inner stream
-    #[inline] pub fn into_inner(self) -> W
-    {
-	self.stream
-    }
-
-    /// Consume into the inner stream and crypter
-    #[inline] pub fn into_parts(self) -> (W, Crypter)
-    {
-	(self.stream, self.crypter)
-    }
-    
     /// The crypter of this instance
     #[inline] pub fn crypter(&self) -> &Crypter
     {
@@ -162,7 +142,44 @@ where W: Write
     }
 }
 
-impl<W: Write> Write for Sink<W>
+impl<W> Sink<W>
+where W: Write
+{
+    /// Create a new Chacha Sink stream wrapper
+    #[inline] fn new(stream: W, crypter: Crypter) -> Self
+    {
+	Self{stream, crypter, buffer: BufferVec::new()}
+    }
+
+    /// Create an encrypting Chacha Sink stream wrapper
+    pub fn encrypt(stream: W, key: Key, iv: IV) -> Result<Self, Error>
+    {
+	Ok(Self::new(stream, cha::encrypter(key, iv)?))
+    }
+    
+    /// Create a decrypting Chacha Sink stream wrapper
+    pub fn decrypt(stream: W, key: Key, iv: IV) -> Result<Self, Error>
+    {
+	Ok(Self::new(stream, cha::decrypter(key, iv)?))
+    }
+    
+
+    /// Consume into the inner stream
+    #[inline] pub fn into_inner(self) -> W
+    {
+	self.stream
+    }
+
+    /// Consume into the inner stream and crypter
+    #[inline] pub fn into_parts(self) -> (W, Crypter)
+    {
+	(self.stream, self.crypter)
+    }
+    
+
+}
+
+impl<W: ?Sized + Write> Write for Sink<W>
 {
     #[inline] fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
 	let n = self.transform(buf)?;
