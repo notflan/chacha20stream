@@ -44,6 +44,7 @@ openssl = "0.10"
 pin-project = {version = "1.0.6", optional = true}
 serde = {version = "1.0", features = ["derive"], optional = true}
 smallvec = {version = "1.6", features=["union"], optional = true}
+stackalloc = "1.1.1"
 tokio = {version = "0.2", optional = true}
 
 [build-dependencies]

@@ -1,6 +1,11 @@
 //! Syncronous stream `Read` componant.
 use super::*;
 
+/// Max number of bytes to stackalloc
+///
+/// Only used with `UseBufferExternal`.
+pub const STACK_MAX_BYTES: usize = 4096;
+
 /// How buffers are used.
 pub trait BufferKind : private::Sealed
 {
@@ -158,17 +163,29 @@ where R: Read
 	}
     }
     
-    /// Perform the cipher transform on this input to the inner buffer, returning the number of bytes updated.
+    /// Perform the cipher transform on this `buffer` to the output buffer, returning the number of bytes updated.
+    fn transform_into(&mut self, buffer: &[u8], output: &mut [u8]) -> Result<usize, ErrorStack>
+    {
+	let n = self.crypter.update(buffer, &mut output[..])?;
+	let _f = self.crypter.finalize(&mut output[..n])?;
+	debug_assert_eq!(_f, 0);
+
+	Ok(n)
+    }
+    
+    /// Perform the cipher transform on the inner buffer bytes to the `output` buffer, returning the number of bytes updated.
+    ///
+    /// # Panics
+    /// If the inner buffer is phantom
     fn transform(&mut self, bufsz: usize, output: &mut [u8]) -> Result<usize, ErrorStack>
     {
-	//self.grow_to_fix(output.len());
-	//let bufsz = self.stream.read(&mut self.buffer[..bufsz])?;
 	let n = self.crypter.update(& K::buffer_bytes(&self.buffer)[..bufsz], &mut output[..])?;
 	let _f = self.crypter.finalize(&mut output[..n])?;
 	debug_assert_eq!(_f, 0);
 
 	Ok(n)
     }
+
 
     /// Clear the internal buffer while keeping it allocated for further use.
     ///
@@ -219,13 +236,16 @@ impl<R: ?Sized, K: ?Sized + BufferKind> Read for Source<R, K>
 where R: Read
 {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-	(#[cfg(feature="reuse-buffer")] {
+	if cfg!(feature="reuse-buffer") {
+	    //XXX: FUck, we can't `crypter.update()` in place....
+	    let read = self.stream.read(buf)?;
 	    todo!()
-	},
-	 #[cfg(not(feature="reuse-buffer"))] {
-	     self.grow_to_fit(buf.len());
-	     let read = self.stream.read(&mut self.buffer[..buf.len()])?;
-	     Ok(self.transform(read, &mut buf[..read])?)
-	 },).0
+
+	}
+	else {
+	    self.grow_to_fit(buf.len()); 
+	    let read = self.stream.read(&mut K::buffer_bytes_mut(&mut self.buffer)[..buf.len()])?;
+	    Ok(self.transform(read, &mut buf[..read])?)
+	}
     }
 }
