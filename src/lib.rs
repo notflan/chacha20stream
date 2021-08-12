@@ -50,6 +50,12 @@ fn decrypt_message_to<W: Write + ?Sized>(output: &mut W, encrypted: &[u8], key: 
 
 #[macro_use] mod ext; #[allow(unused_imports)] use ext::*;
 
+mod private
+{
+    /// This trait cannot be subtraited by downstream crates.
+    pub trait Sealed{}
+}
+
 pub mod key;
 mod cha;
 mod stream;
