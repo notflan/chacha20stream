@@ -195,7 +195,7 @@ where R: Read
     {
 	#[cfg(feature="explicit_clear")]
 	{
-	    bytes::explicit_prune(K::buffer_bytes_mut(self));
+	    bytes::explicit_prune(K::buffer_bytes_mut(&mut self.buffer));
 	    return;
 	}
 	#[cfg(not(feature="explicit_clear"))] 
@@ -232,20 +232,37 @@ impl<R> Source<R, UseBufferInternal>
     }
 }
 
+fn try_alloca<T>(sz: usize, cb: impl FnOnce(&mut [u8]) -> T) -> T
+{
+    if sz > STACK_MAX_BYTES {
+	let mut bytes = vec![0u8; sz];
+	cb(&mut bytes[..])
+    } else {
+	stackalloc::alloca_zeroed(sz, cb)
+    }
+}
+
 impl<R: ?Sized, K: ?Sized + BufferKind> Read for Source<R, K>
 where R: Read
 {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
 	if cfg!(feature="reuse-buffer") {
 	    //XXX: FUck, we can't `crypter.update()` in place....
-	    let read = self.stream.read(buf)?;
-	    todo!()
-
+	    
+	    try_alloca(buf.len(), move |temp| -> io::Result<usize> {
+		let read = self.stream.read(temp)?;
+		let b = self.transform_into(&temp[..read], &mut buf[..read])?;
+		#[cfg(feature="explicit_clear")] bytes::explicit_prune(&mut temp[..b]);
+		Ok(b)
+	    })
 	}
 	else {
 	    self.grow_to_fit(buf.len()); 
 	    let read = self.stream.read(&mut K::buffer_bytes_mut(&mut self.buffer)[..buf.len()])?;
-	    Ok(self.transform(read, &mut buf[..read])?)
+	    let b = self.transform(read, &mut buf[..read])?;
+
+	    #[cfg(feature="explicit_clear")] bytes::explicit_prune(&mut K::buffer_bytes_mut(&mut self.buffer)[..b]);
+	    Ok(b)
 	}
     }
 }
