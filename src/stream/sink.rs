@@ -39,7 +39,7 @@ use super::*;
 pub struct Sink<W: ?Sized>
 {
     crypter: Crypter, // for chacha, finalize does nothing it seems. we can also call it multiple times.
-    buffer: BufferVec, // used to buffer the operation
+    pub(super) buffer: BufferVec, // used to buffer the operation
 
     stream: W,
 }

@@ -110,7 +110,7 @@ pub type DefaultBuffer = UseBufferExternal;
 pub struct Source<R: ?Sized, Buffer: ?Sized + BufferKind = DefaultBuffer>
 {
     crypter: Crypter,
-    buffer: Buffer::InternalBuffer, // When `ad-hoc-buffer` is enabled, this isn't needed. We re-use the output buffer for the initial read of untransformed data from `stream` and the actual transformation of the read bytes.
+    pub(super) buffer: Buffer::InternalBuffer, // When `ad-hoc-buffer` is enabled, this isn't needed. We re-use the output buffer for the initial read of untransformed data from `stream` and the actual transformation of the read bytes.
     
     stream: R
 }
