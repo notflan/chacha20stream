@@ -144,8 +144,6 @@ where W: Write
     {
 	(self.stream, self.crypter)
     }
-    
-
 }
 
 

@@ -206,10 +206,46 @@ where R: Read
 
 }
 
+impl<R, K: ?Sized + BufferKind> Source<R, K>
+where R: Read
+{
+    /// Create a new Chacha Source stream wrapper from a reader
+    #[inline] fn new(stream: R, crypter: Crypter) -> Self
+    {
+	Self{stream, crypter, buffer: K::create_buffer(0)}
+    }
+
+    /// Create an encrypting Chacha Source stream wrapper
+    pub fn encrypt(stream: R, key: Key, iv: IV) -> Result<Self, Error>
+    {
+	Ok(Self::new(stream, cha::encrypter(key, iv)?))
+    }
+    
+    /// Create a decrypting Chacha Source stream wrapper
+    pub fn decrypt(stream: R, key: Key, iv: IV) -> Result<Self, Error>
+    {
+	Ok(Self::new(stream, cha::decrypter(key, iv)?))
+    }
+    
+
+    /// Consume into the inner stream
+    #[inline] pub fn into_inner(self) -> R
+    {
+	self.stream
+    }
+
+    /// Consume into the inner stream and crypter
+    #[inline] pub fn into_parts(self) -> (R, Crypter)
+    {
+	(self.stream, self.crypter)
+    }
+}
+
+
 impl<R> Source<R, UseBufferExternal>
 {
-    /// Convert this instance to use external buffer (instead of internal.)
-    pub fn with_reused_buffer(self) -> Source<R, UseBufferInternal>
+    /// Convert this instance to use internal buffer (instead of external.)
+    pub fn with_internal_buffer(self) -> Source<R, UseBufferInternal>
     {
 	Source {
 	    buffer: UseBufferInternal::create_buffer(UseBufferExternal::buffer_cap(&self)),
