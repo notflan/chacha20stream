@@ -28,6 +28,9 @@ pub type Error = ErrorStack;
 pub mod sink;
 pub use sink::Sink;
 
+pub mod source;
+pub use source::Source;
+
 #[cfg(test)]
 mod test
 {

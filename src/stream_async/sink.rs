@@ -1,4 +1,4 @@
-//! Asyncronous `Write` wrapper.
+//! Asyncronous `AsyncWrite` wrapper.
 use super::*;
 
 /// Async ChaCha Sink
