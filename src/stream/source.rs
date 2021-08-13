@@ -105,7 +105,10 @@ pub type DefaultBuffer = UseBufferInternal;
 #[cfg(feature="ad-hoc-buffer")] 
 pub type DefaultBuffer = UseBufferExternal;
 
-/// TODO: Document
+/// ChaCha source.
+/// En/decrypts information from the source reader.
+///
+/// This is the `Read` implementing counterpart to `Sink`.
 //#[derive(Debug)]
 pub struct Source<R: ?Sized, Buffer: ?Sized + BufferKind = DefaultBuffer>
 {

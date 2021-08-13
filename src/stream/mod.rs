@@ -27,6 +27,8 @@ pub mod source;
 pub use sink::Sink;
 pub use source::Source;
 
+//TODO: Stream: Wrapper over both Sink and Source?
+
 #[cfg(test)]
 mod tests
 {
