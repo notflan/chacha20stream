@@ -65,6 +65,7 @@ mod bytes;
 #[cfg(feature="async")] pub use stream_async::Sink as AsyncSink;
 
 pub use stream::Sink;
+pub use stream::Source;
 pub use key::{
     Key, IV,
 };
