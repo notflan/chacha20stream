@@ -28,10 +28,8 @@ async = ["tokio", "pin-project"]
 # Explicitly clear in-memory buffers with `explicit_bzero()` instead of normal `bzero()`.
 explicit_clear = []
 
-# Reuse the output buffer for `Source`'s raw bytes read from the backing stream
-#
-# This can increase speed as no allocations are needed, however it can leak potentially sensitive data so is unsafe.
-reuse-buffer = []
+# Use a stack (up to a max limit) allocated  buffer for `Source`'s raw bytes read from the backing stream instead of a reused backing stream
+ad-hoc-buffer = []
 
 # Build with C interface bindings
 ffi = ["libc"]

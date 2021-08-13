@@ -100,9 +100,9 @@ impl BufferKind for UseBufferExternal
     }
 }
 
-#[cfg(not(feature="reuse-buffer"))] 
+#[cfg(not(feature="ad-hoc-buffer"))] 
 pub type DefaultBuffer = UseBufferInternal;
-#[cfg(feature="reuse-buffer")] 
+#[cfg(feature="ad-hoc-buffer")] 
 pub type DefaultBuffer = UseBufferExternal;
 
 /// TODO: Document
@@ -110,7 +110,7 @@ pub type DefaultBuffer = UseBufferExternal;
 pub struct Source<R: ?Sized, Buffer: ?Sized + BufferKind = DefaultBuffer>
 {
     crypter: Crypter,
-    buffer: Buffer::InternalBuffer, // When `reuse-buffer` is enabled, this isn't needed. We re-use the output buffer for the initial read of untransformed data from `stream` and the actual transformation of the read bytes.
+    buffer: Buffer::InternalBuffer, // When `ad-hoc-buffer` is enabled, this isn't needed. We re-use the output buffer for the initial read of untransformed data from `stream` and the actual transformation of the read bytes.
     
     stream: R
 }
@@ -232,7 +232,7 @@ impl<R> Source<R, UseBufferInternal>
     }
 }
 
-fn try_alloca<T>(sz: usize, cb: impl FnOnce(&mut [u8]) -> T) -> T
+fn try_alloca<T>(sz: usize, cb: impl for<'a> FnOnce(&'a mut [u8]) -> T) -> T
 {
     if sz > STACK_MAX_BYTES {
 	let mut bytes = vec![0u8; sz];
@@ -246,7 +246,7 @@ impl<R: ?Sized, K: ?Sized + BufferKind> Read for Source<R, K>
 where R: Read
 {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-	if cfg!(feature="reuse-buffer") {
+	if cfg!(feature="ad-hoc-buffer") {
 	    //XXX: FUck, we can't `crypter.update()` in place....
 	    
 	    try_alloca(buf.len(), move |temp| -> io::Result<usize> {
