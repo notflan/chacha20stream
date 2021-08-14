@@ -35,6 +35,30 @@ pub use source::Source;
 mod test
 {
     use tokio::prelude::*;
+
+    #[tokio::test]
+    async fn async_source_enc_dec()
+    {
+	use crate::ext::*;
+	const INPUT: &'static [u8] = b"Hello world!";
+	let (key, iv) = crate::cha::keygen();
+
+	println!("Input: {}", INPUT.hex());
+	let mut enc = super::Source::encrypt(&INPUT[..], key, iv).expect("Failed to create encryptor");
+	let mut enc_out = Vec::with_capacity(INPUT.len());
+	tokio::io::copy(&mut enc, &mut enc_out).await.expect("Failed to copy encrypted output");
+
+	println!("(enc) output: {}", enc_out.hex());
+
+	let mut dec = super::Source::decrypt(&enc_out[..], key, iv).expect("Failed to create decryptor");
+	let mut dec_out = Vec::with_capacity(INPUT.len());
+	tokio::io::copy(&mut dec, &mut dec_out).await.expect("Failed to copy decrypted output");
+
+	println!("(dec) output: {}", dec_out.hex());
+
+	assert_eq!(&dec_out[..], INPUT);
+    }
+    
     #[tokio::test]
     async fn sink_sync()
     {
