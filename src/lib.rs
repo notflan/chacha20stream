@@ -57,7 +57,7 @@ mod private
 }
 
 pub mod key;
-mod cha;
+pub mod cha;
 mod stream;
 mod bytes;
 
