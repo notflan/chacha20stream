@@ -79,9 +79,7 @@ impl<R: AsyncRead> Source<R>
     /// The counterpart to `into_parts()`.
     #[inline] pub fn from_parts(stream: R, crypter: Crypter) -> Self
     {
-	Self {
-	    stream, crypter
-	}
+	Self::new(stream, crypter)
     }
 
     

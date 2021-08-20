@@ -1,6 +1,6 @@
 [package]
 name = "chacha20stream"
-version = "2.2.0"
+version = "2.2.1"
 keywords = ["chacha20_poly1305", "stream", "wrapper", "encryption", "decryption"]
 description = "A writable wrapper stream for encryption and decryption with the stream cipher chacha20_poly1305"
 homepage = "https://git.flanchan.moe/flanchan/chacha20stream"
