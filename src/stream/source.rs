@@ -242,6 +242,14 @@ where R: Read
     {
 	(self.stream, self.crypter)
     }
+    
+    /// Create a source from a stream and a crypter
+    ///
+    /// The counterpart to `into_parts()`.
+    #[inline] pub fn from_parts(stream: R, crypter: Crypter) -> Self
+    {
+	Self::new(stream, crypter)
+    }
 }
 
 

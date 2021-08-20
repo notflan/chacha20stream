@@ -108,6 +108,16 @@ impl<W: AsyncWrite> Sink<W>
     {
 	(self.stream, self.crypter)
     }
+
+    /// Create a sink from a stream and a crypter
+    ///
+    /// The counterpart to `into_parts()`.
+    #[inline] pub fn from_parts(stream: W, crypter: Crypter) -> Self
+    {
+	Self {
+	    stream, crypter
+	}
+    }
     
     /// The crypter of this instance
     #[inline] pub fn crypter(&self) -> &Crypter
